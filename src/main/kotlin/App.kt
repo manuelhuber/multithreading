@@ -1,6 +1,12 @@
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
+/**
+ * A sample app that starts a input thread which will generate messages. These messages will be processed in some way
+ * and then sent to a output thread.
+ * The messages are sent between threads via blocking queues
+ * The main focus is on how to shut the app down without losing important messages
+ */
 fun main(args: Array<String>) {
     val inputQueue: BlockingQueue<String> = LinkedBlockingQueue()
     val outputQueue: BlockingQueue<String> = LinkedBlockingQueue()
@@ -24,12 +30,15 @@ fun main(args: Array<String>) {
         outputQueue.put(transform(message))
     } while (!exitCondition(message))
 
-    // We are done but the output thread is still alive and well - we need to tell it to stop
+    // We are done but the output thread is still alive and well - we need to tell it to stop. This will not immediately
+    // end the thread but throw a InterruptException (which is handled in the Output class)
     outputThread.interrupt()
 
     /*
      The input thread will still continue generating messages (as long as either the main or output thread is alive) but
-     nobody will take the messages from the input queue. So it could make sense to also interrupt the input thread here
+     nobody will take the messages from the input queue. So it could make sense to also interrupt the input thread here.
+     But we don't do that to show that the program will exit even though the input thread is still running (since it's
+     a daemon thread)
      */
 
     /*
